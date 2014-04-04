@@ -38,34 +38,46 @@ class Sequence
   end
 end
 
+class SequenceSearch
+  def initialize
+    @structure=[]
+  end
+  
+  def find_or_add(s)
+    index = @structure.find_index do |item| 
+      item.match s
+    end
+
+    if index.nil?
+      @structure << s
+    else
+      @structure[index].increment_count
+    end
+  end
+
+  def show_top
+    @structure.sort! { |a,b| b.count <=> a.count }
+    @structure.slice(0,100).each do |s|
+      puts s.readable 
+    end
+  end
+end
+  
+
 words = ARGF.read.gsub(/[^a-zA-Z\s]/m, '').downcase.split(/\s+/)
 exit if words.length < 3
 
-sequence_search = []
+sequence_search = SequenceSearch.new
 
 # initialize these
 word1 = words.shift
 word2 = words.shift
 
 words.each do |word3|
-  current_sequence = Sequence.new word1, word2, word3
-
+  sequence_search.find_or_add Sequence.new word1, word2, word3
   word1=word2 # move everybody down a step
   word2=word3
-  
-  index = sequence_search.find_index do |item| 
-    item.match current_sequence 
-  end
-
-  if index.nil?
-    sequence_search << current_sequence
-  else
-    sequence_search[index].increment_count
-  end
 end
 
-sequence_search.sort! { |a,b| b.count <=> a.count }
+sequence_search.show_top
 
-sequence_search.slice(0,100).each do |s|
-  puts s.readable 
-end
